@@ -1,5 +1,4 @@
 import config.app_config as app_config
-
 from pymongo import MongoReplicaSetClient
 from pymongo import MongoClient
 from pymongo.read_preferences import ReadPreference
@@ -27,8 +26,8 @@ def mongoDBHelper(dbName, readOnly=False):
                             app_config.MONGODB_CONFIG['PASSWORD'])
         else:
             pass
-    if readOnly:
-        db.read_preference = ReadPreference.SECONDARY_PREFERRED
-    else:
-        db.read_preference = ReadPreference.PRIMARY_PREFERRED
+    # if readOnly:
+    #     db.read_preference = ReadPreference.SECONDARY_PREFERRED
+    # else:
+    #     db.read_preference = ReadPreference.PRIMARY_PREFERRED
     return db
