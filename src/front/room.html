@@ -1,0 +1,170 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>jGoBoard SGF Player Demo</title>
+  <link rel="stylesheet" href="static/css/demoSGF.css" type="text/css">
+  <script src="static/js/jquery.min.js"></script>
+  <!-- <link rel="stylesheet" href="static/css/font-awesome.min.css"> -->
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+</head>
+<body>
+
+<div id="main">
+
+<div style="text-align: center; width: 100%">
+<div style="display: inline-block;">
+  <div style="float: left;">
+<div id="board">
+
+</div>
+<p class="controls" style="width: 500px;">
+<a href="#" onclick="move(0); return false;"><i class="fa fa-fast-backward"></i></a>
+<a href="#" onclick="move(-5); return false;"><i class="fa fa-backward"></i></a>
+<a href="#" onclick="move(-1); return false;"><i class="fa fa-step-backward"></i></a>
+<strong id="move">0</strong> / <strong id="moves">0</strong>
+<a href="#" onclick="move(1); return false;"><i class="fa fa-step-forward"></i></a>
+<a href="#" onclick="move(5); return false;"><i class="fa fa-forward"></i></a>
+<a href="#" onclick="move(1000); return false;"><i class="fa fa-fast-forward"></i></a>
+</p>
+</div>
+
+<div id="infopane" style="float: left; padding: 1em; text-align: left;">
+  <h2>Game information</h2>
+  <p id="information"></p>
+  <p>
+  Black 吃字数: <strong id="black-captures"></strong><br>
+  White 吃字数: <strong id="white-captures"></strong>
+  </p>
+  <h2>Comments</h2>
+  <p id="comments"></p>
+</div>
+
+<div style="clear: both;"></div>
+</div>
+</div>
+
+<script type="text/javascript" src="static/js/jgoboard-latest.js"></script>
+<script type="text/javascript" src="medium/board.js"></script>
+<script type="text/javascript">JGO.auto.init(document, JGO);</script>
+<script type="text/javascript">
+var moveNum = 0, moves = 0, gotoMove = 0;
+var jrecord = new JGO.Record(19, 19);   //从后台获取棋盘尺寸
+var jboard = jrecord.jboard;
+var jsetup = new JGO.Setup(jboard, JGO.BOARD.medium);
+var player = JGO.BLACK; // next player       //从后台获取谁先手
+var ko = false, lastMove = false; // ko coordinate and last move coordinate
+var lastHover = false, lastX = -1, lastY = -1; // hover helper vars
+
+function move(dir) { // dir=0 has special meaning "beginning"
+  if(!jrecord) return; // disable movement until SGF loaded
+
+  if(dir == 0) {
+    jrecord.first();
+    moveNum = 1;
+  }
+  while(dir < 0) {
+    if(!jrecord.previous()) break;
+    moveNum--; dir++;
+  }
+  while(dir > 0) {
+    if(!jrecord.next()) break;
+    moveNum++; dir--;
+  }
+  updateInfo();
+}
+function updateInfo() {
+  var info = jrecord.getCurrentNode().info;
+  $('#move').html(moveNum);
+  $('#comments').html(info.comment ? info.comment.replace(/\n/g, '<br>') : '');
+  $('#black-captures').text(info.captures[JGO.BLACK]);
+  $('#white-captures').text(info.captures[JGO.WHITE]);
+}
+function updateCaptures(node) {
+  $("#black-captures").text(node.info.captures[JGO.BLACK])
+  $("#white-captures").text(node.info.captures[JGO.WHITE])
+};
+
+$(document).ready(function() {
+  //获取用户执字颜色，和是否该该用户下棋
+  jsetup.setOptions({stars: {points:5}});
+  jsetup.create('board', function(canvas) {
+    canvas.addListener('click', function(coord, ev) {
+      var opponent = (player == JGO.BLACK) ? JGO.WHITE : JGO.BLACK;
+      // var opponent = JGO.BLACK;
+      if(ev.shiftKey) { // on shift do edit
+        if(jboard.getMark(coord) == JGO.MARK.NONE)
+          jboard.setMark(coord, JGO.MARK.SELECTED);
+        else
+          jboard.setMark(coord, JGO.MARK.NONE);
+        return;
+      }
+
+      // clear hover away - it'll be replaced or then it will be an illegal move
+      // in any case so no need to worry about putting it back afterwards
+      if(lastHover)
+        jboard.setType(new JGO.Coordinate(lastX, lastY), JGO.CLEAR);
+
+      lastHover = false;
+
+      var play = jboard.playMove(coord, player, ko);
+
+      if(play.success) {
+        node = jrecord.createNode(true);
+        node.info.captures[player] += play.captures.length; // tally captures
+        node.setType(coord, player); // play stone
+
+        node.setType(play.captures, JGO.CLEAR); // clear opponent's stones
+        moveNum++
+        if(lastMove)
+          node.setMark(lastMove, JGO.MARK.NONE); // clear previous mark
+        if(ko)
+          node.setMark(ko, JGO.MARK.NONE); // clear previous ko mark
+
+        node.setMark(coord, moveNum); // mark move
+        console.log(node)
+        lastMove = coord;
+
+        if(play.ko)
+          node.setMark(play.ko, JGO.MARK.CIRCLE); // mark ko, too
+        ko = play.ko;
+
+
+        player = opponent;
+        updateCaptures(node);
+        $('#moves').html(jrecord.normalize());
+        $('#move').html(jrecord.normalize());
+        //通知后台，落子的位置，coord坐标, player黑白
+      } else console.log('Illegal move: ' + play.errorMsg);
+    });
+
+    canvas.addListener('mousemove', function(coord, ev) {
+      if(coord.i == -1 || coord.j == -1 || (coord.i == lastX && coord.j == lastY))
+        return;
+
+      if(lastHover) // clear previous hover if there was one
+        jboard.setType(new JGO.Coordinate(lastX, lastY), JGO.CLEAR);
+
+      lastX = coord.i;
+      lastY = coord.j;
+
+      if(jboard.getType(coord) == JGO.CLEAR && jboard.getMark(coord) == JGO.MARK.NONE) {
+        jboard.setType(coord, player == JGO.WHITE ? JGO.DIM_WHITE : JGO.DIM_BLACK);
+        lastHover = true;
+      } else
+        lastHover = false;
+    });
+
+    canvas.addListener('mouseout', function(ev) {
+      if(lastHover)
+        jboard.setType(new JGO.Coordinate(lastX, lastY), JGO.CLEAR);
+
+      lastHover = false;
+    });
+  });
+})
+
+</script>
+
+</body>
+</html>
