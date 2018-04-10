@@ -1,7 +1,8 @@
 import config.app_config as app_config
 from pymongo import MongoReplicaSetClient
 from pymongo import MongoClient
-from pymongo.read_preferences import ReadPreference
+
+#from pymongo.read_preferences import ReadPreference
 
 
 def mongoDBHelper(dbName, readOnly=False):
