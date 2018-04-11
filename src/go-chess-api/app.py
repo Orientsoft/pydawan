@@ -16,20 +16,25 @@ api.add_resource(Room, '/rooms/<room_id>')
 api.add_resource(UserList, '/users')
 api.add_resource(User, '/users/<user_id>')
 
+# @app.before_request
+# def pre_auth():
+#     if 'Authorization' in request.headers:
+#         auth_jwt = request.headers['Authorization']
+#         if auth_jwt != '':
+#             payload = jwt.decode(
+#                 auth_jwt, app_config.JWT_SECRET, algorithms=['HS256'])
+#             # Store user id in g
+#             g.user_id = payload['user_id']
+#         else:
+#             abort(403)
+#     else:
+#         abort(403)
 
-@app.before_request
-def pre_auth():
-    if 'Authorization' in request.headers:
-        auth_jwt = request.headers['Authorization']
-        if auth_jwt != '':
-            payload = jwt.decode(
-                auth_jwt, app_config.JWT_SECRET, algorithms=['HS256'])
-            # Store user id in g
-            g.user_id = payload['user_id']
-        else:
-            abort(403)
-    else:
-        abort(403)
+
+@app.after_request
+def cross_domain_handler(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
 
 
 if __name__ == '__main__':

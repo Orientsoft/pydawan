@@ -4,4 +4,7 @@ from flask import g
 
 class Ping(Resource):
     def get(self):
-        return 'pong from user: ' + g.user_id
+        if hasattr(g, 'user_id'):
+            return 'pong from user: ' + g.user_id
+        else:
+            return 'pong'
