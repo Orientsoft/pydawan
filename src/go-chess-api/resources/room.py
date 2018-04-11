@@ -33,6 +33,7 @@ class RoomList(Resource):
                 'room_type': content['room_type'],
                 # TODO: put creator in this list
                 'users': [],
+                'records': [],
                 'room_no': 99,
                 'user_count': 1,
                 'black': '',
