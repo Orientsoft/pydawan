@@ -28,6 +28,7 @@ class RoomList(Resource):
             return resp
         else:
             room = {
+                # 'owner_id': ObjectId(content['owner_id']),
                 'name': content['name'],
                 'room_type': content['room_type'],
                 # TODO: put creator in this list
@@ -42,6 +43,8 @@ class RoomList(Resource):
             db = config.mongoDBHelper(app_config.MONGODB_NAME)
             ret = db.rooms.insert(room)
             room['_id'] = str(ret)
+            # TODO: save current user_id into owner_id field.
+            # room['owner_id'] = str(room['owner_id'])
             resp = jsonify({'code': 0, 'message': 'success', 'data': room})
             return resp
 
