@@ -30,5 +30,11 @@ api.add_resource(User, '/users/<user_id>')
 #     else:
 #         abort(403)
 
+
+@app.after_request
+def cross_domain_handler(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+
 if __name__ == '__main__':
     app.run(debug=True)
