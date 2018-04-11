@@ -360,7 +360,7 @@ Board.prototype.playMove = function(coord, stone, ko) {
         captures = captures.concat(g.group);
         // save captured coordinates so we don't capture them twice
         for(var j=0; j<g.group.length; j++)
-          captured[g.group[j].toString()] = true; 
+          captured[g.group[j].toString()] = true;
       }
     }
   }

@@ -5,6 +5,8 @@
   <title>jGoBoard SGF Player Demo</title>
   <link rel="stylesheet" href="static/css/demoSGF.css" type="text/css">
   <script src="static/js/jquery.min.js"></script>
+  <!-- <script src="static/js/socket.io-1.0.6.js"></script> -->
+  <script src="static/js/paho-mqtt.js"></script>
   <!-- <link rel="stylesheet" href="static/css/font-awesome.min.css"> -->
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   <link href="static/css/bootstrap.min.css"  rel="stylesheet" type="text/css" />
@@ -174,17 +176,17 @@
 </div>
 
 <script type="text/javascript" src="static/js/jgoboard-latest.js"></script>
-<script type="text/javascript" src="medium/board.js"></script>
-<script type="text/javascript">JGO.auto.init(document, JGO);</script>
+<script type="text/javascript" src="static/medium/board.js"></script>
+<!-- <script type="text/javascript">JGO.auto.init(document, JGO);</script> -->
 <script type="text/javascript">
-var moveNum = 0, moves = 0, gotoMove = 0;
-var jrecord = new JGO.Record(19, 19);   //从后台获取棋盘尺寸
-var jboard = jrecord.jboard;
-var jsetup = new JGO.Setup(jboard, JGO.BOARD.medium);
-var player = JGO.BLACK; // next player       //从后台获取谁先手
-var ko = false, lastMove = false; // ko coordinate and last move coordinate
-var lastHover = false, lastX = -1, lastY = -1; // hover helper vars
 
+  var moveNum = 0, moves = 0, gotoMove = 0;
+  var jrecord = new JGO.Record(19, 19);   //从后台获取棋盘尺寸
+  var jboard = jrecord.jboard;
+  var jsetup = new JGO.Setup(jboard, JGO.BOARD.medium);
+  var player = JGO.BLACK; // next player       //从后台获取谁先手
+  var ko = false, lastMove = false; // ko coordinate and last move coordinate
+  var lastHover = false, lastX = -1, lastY = -1; // hover helper vars
 function move(dir) { // dir=0 has special meaning "beginning"
   if(!jrecord) return; // disable movement until SGF loaded
 
@@ -215,8 +217,28 @@ function updateCaptures(node) {
 };
 
 $(document).ready(function() {
+  //mqtt subscribe roomno
+  client = new Paho.MQTT.Client('192.168.0.213', 6883, "wangbilin");
+  client.onConnectionLost = onConnectionLost;
+  client.onMessageArrived = onMessageArrived;
+  client.connect({onSuccess:onConnect,reconnect:true,timeout:10});
+  function onConnect() {
+    console.log("onConnect");
+    client.subscribe("wang");
+  }
+  function onConnectionLost(responseObject) {
+    if (responseObject.errorCode !== 0) {
+      console.log("onConnectionLost:"+responseObject.errorMessage);
+    }
+  }
+  function onMessageArrived(message) {
+    console.log("onMessageArrived:"+message.payloadString);
+  }
+
+
+
   //获取用户执字颜色，和是否该该用户下棋
-  jsetup.setOptions({stars: {points:5}});
+  // jsetup.setOptions({stars: {points:5}});
   jsetup.create('board', function(canvas) {
     canvas.addListener('click', function(coord, ev) {
       var opponent = (player == JGO.BLACK) ? JGO.WHITE : JGO.BLACK;
