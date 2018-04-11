@@ -123,3 +123,9 @@ cursor:pointer;z-index: 10;}
 .wrapper-page.login{    margin: 5% auto;
     position: relative;
     width: 420px;}
+
+.bntmg{ padding-top: 100px;}
+    .bntmg .col-md-10{ margin: 4px 0}
+    .roomlist{ border: solid 1px #ddd;}
+    .roomlist .teable-body{ border-bottom: none}
+    .bntmg div{ margin: 5px 0}

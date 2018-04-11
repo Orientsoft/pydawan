@@ -24,17 +24,17 @@ JGO.BOARD.medium = {
     padding: {normal: 10, clipped: 5},
 
     // Grid color and size, line widths
-    grid: {color: '#202020', x: 25, y: 25, smooth: 0,
+    grid: {color: '#202020', x: 35, y: 35, smooth: 0,
         borderWidth: 1.2, lineWidth: 0.9},
 
     // Star point radius
-    stars: {radius: 2.5},
+    stars: {radius: 4.5},
 
     // Coordinate color and font
     coordinates: {color: '#808080', font: 'normal 12px sanf-serif'},
 
     // Stone radius  and alpha for semi-transparent stones
-    stone: {radius: 12, dimAlpha:0.6},
+    stone: {radius: 12, dimAlpha:0.3},
 
     // Shadow offset from center
     shadow: {xOff: -1, yOff: 1},
